@@ -10,8 +10,10 @@ class TicketComment extends Model
     protected $fillable = [
      'ticket_id',
      'user_id',
-     'comment'   
+     'comments'
     ];
+
+    protected $table = 'tickets_comments';
 
     public function ticket(): BelongsTo
     {
