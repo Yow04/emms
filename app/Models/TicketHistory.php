@@ -9,6 +9,8 @@ class TicketHistory extends Model
 {
     public $timestamps = false;
 
+    protected $table = 'tickets_histories';
+
     protected $fillable = [
         'ticket_id',
         'user_id',
