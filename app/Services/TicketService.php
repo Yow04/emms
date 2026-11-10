@@ -45,4 +45,43 @@ class TicketService
             return $ticket;
         });
     }
+
+    public function updateStatus(
+        Ticket $ticket,
+        User $user,
+        array $data
+    ): Ticket {
+        return DB::transaction(function () use ($ticket, $user, $data){
+
+            $ticket = Ticket::wherekey($ticket->id)
+            ->lockForUpdate()
+            ->firstOrFail();
+
+            $oldStatus = $ticket->status;
+            $newStatus = $data['status'];
+
+            //Jika tidak ada perubahan, tidak perlu mengubah status dari tiket
+
+            if ($oldStatus === $newStatus){
+                return $ticket;
+            }
+
+            $ticket -> update([
+                'status' => $newStatus,
+            ]);
+
+            TicketHistory::create([
+                'ticket_id' => $ticket->id,
+                'user_id' => $user->id,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+                'old_assigned_to' => $ticket->assigned_to,
+                'new_assigned_to' => $ticket->assigned_to,
+                'description' => $data['description']
+                    ?? "Status tiket diubah dari {$oldStatus} menjadi {$newStatus}",   
+            ]);
+
+            return $ticket->fresh();
+        });
+    }
 }

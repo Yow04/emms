@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Ticket;
 use App\Http\Requests\StoreTicketRequest;
+use App\Http\Requests\UpdateTicketStatusRequest;
 use App\Services\TicketService;
 use Illuminate\Http\JsonResponse;
 
@@ -45,6 +47,23 @@ class TicketController extends Controller
         return response()->json([
             'message' => 'List Tiket berhasil diambil',
             'data' => $tickets,
+        ]);
+    }
+
+    public function updateStatus(
+        UpdateTicketStatusRequest $request,
+        Ticket $ticket,
+        TicketService $ticketService
+    ): JsonResponse {
+        $updatedTicket = $ticketService->updateStatus(
+            $ticket,
+            $request->user(),
+            $request->validated()
+        );
+
+        return response()->json([
+            'message' => 'status tiket berhasil diperbaharui',
+            'data' =>  $updatedTicket,
         ]);
     }
 }
