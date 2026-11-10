@@ -84,4 +84,42 @@ class TicketService
             return $ticket->fresh();
         });
     }
+
+    public function assignTicket(
+        Ticket $ticket,
+        User $actor,
+        array $data
+    ): Ticket {
+        return DB::transaction(function () use ($ticket, $actor, $data){
+
+            $ticket = Ticket::whereKey($ticket->id)
+            ->lockForUpdate()
+            ->firstOrFail();
+
+            $oldAssignedTo = $ticket->assigned_to;
+            $newAssignedTo = (int) $data['assigned_to'];
+
+            //Tidak perlu diubah jika sama
+            if ((int) $oldAssignedTo === $newAssignedTo){
+                return $ticket;
+            }
+
+            $ticket -> update([
+                'assigned_to' => $newAssignedTo,
+            ]);
+
+            TicketHistory::create([
+                'ticket_id' => $ticket->id,
+                'user_id' => $actor->id,
+                'old_status' => $ticket->status,
+                'new_status' => $ticket->status,
+                'old_assigned_to' => $oldAssignedTo,
+                'new_assigned_to' => $newAssignedTo,
+                'description' => $data['description']
+                    ?? "Staff support tidak diperbarui",   
+            ]);
+
+            return $ticket->fresh();
+        });
+    }
 }
